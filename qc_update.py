@@ -1,9 +1,19 @@
 import streamlit as st
 import time
+import os
+import subprocess
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait, Select
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
+
+try:
+    subprocess.run("apt-get update", shell=True, check=False)
+    subprocess.run("apt-get install -y chromium-browser chromium-chromedriver", shell=True, check=False)
+    os.environ["PATH"] += os.pathsep + "/usr/lib/chromium-browser/"
+except Exception as e:
+    st.warning(f"⚠️ Chrome setup failed: {e}")
 
 st.set_page_config(page_title="AML GUI Automation", layout="centered")
 st.title("AML GUI Automation Web App")
@@ -18,11 +28,21 @@ run_btn = st.button("Run Automation")
 
 def login_and_process_ids(login_url, username, password, ids):
     # Selenium setup
-    options = webdriver.ChromeOptions()
-    options.add_argument('--start-maximized')
-    # options.add_argument('--headless')  # Uncomment if you want headless mode
+    # options = webdriver.ChromeOptions()
+    # options.add_argument('--start-maximized')
+    # # options.add_argument('--headless')  # Uncomment if you want headless mode
 
-    driver = webdriver.Chrome(options=options)
+    # driver = webdriver.Chrome(options=options)
+    chrome_options = webdriver.ChromeOptions()
+    chrome_options.add_argument("--headless")  # Run headless on Streamlit
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--disable-software-rasterizer")
+
+    service = Service("/usr/bin/chromedriver")
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    
     driver.get(login_url)
 
     try:
